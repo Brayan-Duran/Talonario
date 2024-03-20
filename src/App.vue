@@ -235,6 +235,12 @@
                     <td>{{ item.estadoTexto }}</td>
                     <td>{{ item.boleta }}</td>
                   </tr>
+                  <tr>
+                    <td id="r" colspan="6">Dinero recaudado: {{ vpagada }}</td>
+                  </tr>
+                  <tr>
+                    <td id="r" colspan="6">Deuda total: {{ vdeuda }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -414,6 +420,13 @@ let fechaP = ref("");
 let divaparecer = ref(false);
 let divaparecer2 = ref(false);
 let error2 = ref("");
+let vpagada = ref(0);
+let vdeuda = ref(0)
+let acum = ref(0)
+let acumm = ref(0)
+let con = ref(0)
+let conn = ref(0)
+
 
 
 
@@ -446,7 +459,17 @@ function download() {
     let rowData = [];
     for (let j = 0; j < cols.length; j++) {
       let col = cols[j];
+      let we = col.innerText 
+      if(col.id === "r"){
+        let rowData = []
+        rowData.push({
+          content: we, 
+          colSpan: 6
+        })
+        bodyData.push(rowData)
+      }else{
       rowData.push(col.innerText);
+      }
     }
     bodyData.push(rowData);
   }
@@ -563,6 +586,8 @@ function regBoletas() {
   }
 
   registros.value.push(cliente)
+  totalDinero()
+  totalDeuda()
 
   arr.value[i.value].comprador = cliente
   console.log(arr.value);
@@ -603,6 +628,7 @@ function traerDatos(item, index) {
 
 function libb() {
 
+  
   arr.value[i.value].estado = 0
   arr.value[i.value].comprador = {}
 
@@ -626,12 +652,20 @@ function libb() {
 
       registros.value.splice(i, 1)
 
+      
     }
+  }
+  if(estado.value === 2){
+  descontar()
+   }else{
+  descontarD()
   }
 }
 
 function pagar() {
   arr.value[i.value].estado = 2
+  
+  
   Swal.fire({
     icon: "success",
     title: "Boleta Pagada",
@@ -655,7 +689,8 @@ function pagar() {
 
     }
   }
-
+  totalDinero()
+  descontarD()
 }
 
 function ganador() {
@@ -794,7 +829,7 @@ function validar() {
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual >= fecha_select) {
+    } else if (fecha_actual.setHours(0,0,0,0) >= fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -886,7 +921,7 @@ function validar() {
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual > fecha_select) {
+    } else if (fecha_actual.setHours(0,0,0,0) > fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -895,8 +930,8 @@ function validar() {
       });
 
     } else {
-      datostalonario.value[index].vrifa = vrifa.value;
-      datostalonario.value[index].vboleta = vboleta.value;
+      datostalonario.value[index].vrifa = parseFloat(vrifa.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+      datostalonario.value[index].vboleta = parseFloat(vboleta.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
       datostalonario.value[index].loterias = loterias.value;
       datostalonario.value[index].cantboletas = cantboletas.value;
       datostalonario.value[index].fecha = fecha.value;
@@ -917,14 +952,18 @@ function validar() {
 
 
 function agregar() {
+
   const talonario = {
-    vrifa: vrifa.value,
-    vboleta: vboleta.value,
+    vrifa: parseFloat(vrifa.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
+    vboleta: parseFloat(vboleta.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
     loterias: loterias.value,
     cantboletas: parseInt(cantboletas.value),
     fecha: fecha.value,
   };
+
+
   datostalonario.value.push(talonario);
+
 
   arr.value = Array.from({ length: cantboletas.value }, (value, index) => ({
     numero: index,
@@ -934,15 +973,18 @@ function agregar() {
 
   console.log(arr.value);
   console.log(datostalonario.value);
-  limpiar()
+  limpiar();
 }
 
 
 function editar(item, i) {
   console.log(item);
   console.log(i);
-  vrifa.value = item.vrifa;
-  vboleta.value = item.vboleta;
+  let numero = revertirFormatoMoneda(item.vboleta);
+  let num = revertirFormatoMoneda(item.vrifa);
+
+  vrifa.value = num;
+  vboleta.value = numero;
   loterias.value = item.loterias;
   fecha.value = item.fecha;
   edit = false;
@@ -967,5 +1009,73 @@ function limpiar2() {
 
 }
 
+function revertirFormatoMoneda(valorMoneda) {
+    
+    let numero = valorMoneda.replace(/[^0-9,-]+/g,"");
+    
+    numero = numero.replace(',', '.');
+ 
+    return parseInt(numero);
+}
+
+function totalDinero(){
+  let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
+  
+  let existe = false
+
+    registros.value.forEach(e => {
+      if(e.estadoTexto === "Pagado"){
+        existe = true
+        con.value ++
+        
+      }
+    });
+   
+    if(existe === true){
+        acum.value = numero * con.value
+      }
+    con.value = 0
+    
+    vpagada.value = acum.value
+  
+}
+
+function descontar(){
+  let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
+
+  acum.value -= numero
+  
+  vpagada.value = acum.value
+}
+
+function totalDeuda(){
+  let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
+  
+  let existe = false
+
+    registros.value.forEach(e => {
+      if(e.estadoTexto === "Apartado"){
+        existe = true
+        conn.value ++
+        
+      }
+    });
+   
+    if(existe === true){
+        acumm.value = numero * conn.value
+      }
+    conn.value = 0
+    
+    vdeuda.value = acumm.value
+  
+}
+
+function descontarD(){
+  let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
+
+  acumm.value -= numero
+  
+  vdeuda.value = acumm.value
+}
 
 </script>
