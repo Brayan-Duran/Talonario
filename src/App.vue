@@ -895,8 +895,8 @@ function validar() {
       });
 
     } else {
-      datostalonario.value[index].vrifa = vrifa.value;
-      datostalonario.value[index].vboleta = vboleta.value;
+      datostalonario.value[index].vrifa = parseFloat(vrifa.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+      datostalonario.value[index].vboleta = parseFloat(vboleta.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
       datostalonario.value[index].loterias = loterias.value;
       datostalonario.value[index].cantboletas = cantboletas.value;
       datostalonario.value[index].fecha = fecha.value;
@@ -917,14 +917,18 @@ function validar() {
 
 
 function agregar() {
+
   const talonario = {
-    vrifa: vrifa.value,
-    vboleta: vboleta.value,
+    vrifa: parseFloat(vrifa.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
+    vboleta: parseFloat(vboleta.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
     loterias: loterias.value,
     cantboletas: parseInt(cantboletas.value),
     fecha: fecha.value,
   };
+
+
   datostalonario.value.push(talonario);
+
 
   arr.value = Array.from({ length: cantboletas.value }, (value, index) => ({
     numero: index,
@@ -934,7 +938,7 @@ function agregar() {
 
   console.log(arr.value);
   console.log(datostalonario.value);
-  limpiar()
+  limpiar();
 }
 
 
