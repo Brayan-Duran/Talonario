@@ -794,7 +794,7 @@ function validar() {
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual >= fecha_select) {
+    } else if (fecha_actual.setHours(0,0,0,0) >= fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -886,7 +886,7 @@ function validar() {
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual > fecha_select) {
+    } else if (fecha_actual.setHours(0,0,0,0) > fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
