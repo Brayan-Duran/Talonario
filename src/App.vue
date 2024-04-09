@@ -9,6 +9,7 @@
         <div class="intro">
           <div class="color-titulo"
             :style="{ backgroundColor: colorheader === '1' ? '#F1B300' : colorheader === '2' ? '#78A036' : colorheader === '3' ? '#BD5288' : colorheader === '4' ? '#F6B363' : '#014BAE' }">
+            <span class="closeicon2" @click="aviso()"><i class="fa fa-times"></i></span>
             <h2 class="titulo-info-talonario">CONFIGURA TU TALONARIO</h2>
           </div>
           <div class="input-group">
@@ -21,7 +22,7 @@
               <option value="Santander">Santander</option>
               <option value="Baloto">Baloto</option>
             </select>
-            <select name="" id="" v-model="cantboletas">
+            <select name="" id="" v-model="cantboletas" :disabled="selectDeshabilitado">
               <option disabled selected hidden value="">Cantidad de Boletas</option>
               <option value="100">0-99</option>
               <option value="1000">0-999</option>
@@ -70,7 +71,7 @@
             <button class="btn-acciones" @click="aparecerpersonalizar()"
               :style="{ backgroundColor: colorbotones === '1' ? '#F1B300' : colorbotones === '2' ? '#78A036' : colorbotones === '3' ? '#BD5288' : colorbotones === '4' ? '#F6B363' : '#014BAE' }"><i
                 class="fa fa-cogs"></i>PERSONALIZAR</button>
-            
+
           </div>
         </div>
       </div>
@@ -145,7 +146,6 @@
                 <option value="1">Apartado</option>
                 <option value="2">Pagado</option>
               </select>
-              <p v-if="error2 != ''">{{ error2 }}</p>
               <button class="btn btn-primary botoncito" @click="validarcliente()"
                 :style="{ backgroundColor: colorbotones === '1' ? '#F1B300' : colorbotones === '2' ? '#78A036' : colorbotones === '3' ? '#BD5288' : colorbotones === '4' ? '#F6B363' : '#014BAE' }">Registrar</button>
             </div>
@@ -159,6 +159,7 @@
             <div class="modal-header  encabezado"
               :style="{ backgroundColor: colorheader === '1' ? '#F1B300' : colorheader === '2' ? '#78A036' : colorheader === '3' ? '#BD5288' : colorheader === '4' ? '#F6B363' : '#014BAE' }">
               <h1 class="modal-title fs-5 titulo-datos-boleta titulo4" id="exampleModalLabel2">Participante</h1>
+              <button data-bs-toggle="modal" data-bs-target="#participanteEdit">Editar</button>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -224,6 +225,7 @@
                     <th>Fecha Compra Boleta</th>
                     <th>Estado Boleta</th>
                     <th>N. Boleta </th>
+                   
                   </tr>
                 </thead>
                 <tbody>
@@ -375,6 +377,25 @@
           </div>
         </div>
       </div>
+      <div class="modal fade prueba-color" id="participanteEdit" data-bs-backdrop="static" data-bs-keyboard="false"
+        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content contenido">
+            <div class="modal-header ">
+              <h1 class="modal-title fs-5 titulo-datos-boleta" id="staticBackdropLabel">Datos del participante</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="text" placeholder="Ingrese nombre del comprador" v-model="nombreP">
+              <input type="text" placeholder="Ingrese direccion del comprador" v-model="direccionP">
+              <input type="tel" required pattern="[0-9]+" maxlength="10" placeholder="Ingrese numero telefonico "
+                v-model="telefonoP">
+              <button class="btn btn-primary botoncito" @click="editarParticipante()"
+                :style="{ backgroundColor: colorbotones === '1' ? '#F1B300' : colorbotones === '2' ? '#78A036' : colorbotones === '3' ? '#BD5288' : colorbotones === '4' ? '#F6B363' : '#014BAE' }">Editar</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
     <footer class="footer"
       :style="{ backgroundColor: colorfooter === '1' ? '#F1B300' : colorfooter === '2' ? '#78A036' : colorfooter === '3' ? '#BD5288' : colorfooter === '4' ? '#F6B363' : '#014BAE' }">
@@ -417,16 +438,19 @@ let nombreP = ref("");
 let direccionP = ref("");
 let telefonoP = ref("");
 let fechaP = ref("");
+let estadoP = ref(null)
+let estadoTextoP = ref(null)
 let divaparecer = ref(false);
 let divaparecer2 = ref(false);
-let error2 = ref("");
 let vpagada = ref(0);
 let vdeuda = ref(0)
 let acum = ref(0)
 let acumm = ref(0)
 let con = ref(0)
 let conn = ref(0)
-
+let selectDeshabilitado = ref(false);
+let edit2 = true;
+let index2 = null;
 
 
 
@@ -459,16 +483,16 @@ function download() {
     let rowData = [];
     for (let j = 0; j < cols.length; j++) {
       let col = cols[j];
-      let we = col.innerText 
-      if(col.id === "r"){
+      let we = col.innerText
+      if (col.id === "r") {
         let rowData = []
         rowData.push({
-          content: we, 
+          content: we,
           colSpan: 6
         })
         bodyData.push(rowData)
-      }else{
-      rowData.push(col.innerText);
+      } else {
+        rowData.push(col.innerText);
       }
     }
     bodyData.push(rowData);
@@ -488,11 +512,10 @@ function download() {
 
 
 function validarcliente() {
-
   let texto = /^[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+$/;
 
-
-  if (nombreC.value == "") {
+  if (edit2 ==true) {
+    if (nombreC.value == "") {
     Swal.fire({
       icon: "error",
       title: "Oops...",
@@ -557,9 +580,77 @@ function validarcliente() {
     let bootstrapModal = bootstrap.Modal.getInstance(modal);
     bootstrapModal.hide();
   }
+  } else {
+    if (nombreC.value == "") {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El nombre del comprador es requerido",
+      timer: 3500
+    });
 
+  } else if (!texto.test(nombreC.value)) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de nombre comprador no puede llevar numeros",
+      timer: 3500
+    });
+  } else if (direccionC.value == "") {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "La dirrecion del comprador es requerida",
+      timer: 3500
+    });
+  } else if (telefonoC.value == "") {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El telefono del comprador es requerido",
+      timer: 3500
+    });
+  } else if (isNaN(telefonoC.value) == true) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de telefono del comprador debe ser numerico",
+      timer: 3500
+    });
+  } else if (telefonoC.value.length != 10) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de telefono debe tener al menos 10 numeros",
+      timer: 3500
+    });
+  } else if (estadoC.value == "") {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El estado de la compra de la boleta es requerido",
+      timer: 3500
+    });
+  } else {
+    registros.value[index2].nombre = nombreC.value;
+    registros.value[index2].direccion = direccionC.value;
+    registros.value[index2].telefono = telefonoC.value;
+    limpiar2()
 
+    Swal.fire({
+      icon: "success",
+      title: "Boleta Actualizada",
+      showConfirmButton: false,
+      timer: 1500
+    });
+
+    let modal = document.getElementById('staticBackdrop2');
+    let bootstrapModal = bootstrap.Modal.getInstance(modal);
+    bootstrapModal.hide();
+  }
+  }
 }
+
 
 
 function regBoletas() {
@@ -606,6 +697,31 @@ function cerrar() {
 
 }
 
+
+
+function aviso() {
+  if (vrifa.value === "" || vboleta.value === ""|| cantboletas.value == "" || loterias.value === "" || fecha.value === "") {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Debes completar todos los campos para poder guardar",
+      timer: 3500
+    });
+  } else {
+    cerrar3();
+  }
+}
+
+
+function cerrar3(){
+  modal_intro.value = false
+
+}
+
+
+
+
+
 function listardatos() {
   divaparecer2.value = true
 }
@@ -628,7 +744,7 @@ function traerDatos(item, index) {
 
 function libb() {
 
-  
+
   arr.value[i.value].estado = 0
   arr.value[i.value].comprador = {}
 
@@ -652,20 +768,20 @@ function libb() {
 
       registros.value.splice(i, 1)
 
-      
+
     }
   }
-  if(estado.value === 2){
-  descontar()
-   }else{
-  descontarD()
+  if (estado.value === 2) {
+    descontar()
+  } else {
+    descontarD()
   }
 }
 
 function pagar() {
   arr.value[i.value].estado = 2
-  
-  
+
+
   Swal.fire({
     icon: "success",
     title: "Boleta Pagada",
@@ -713,16 +829,16 @@ function ganador() {
   let ganador = 0;
 
   registros.value.forEach(e => {
-        console.log(e);
-        if(e.estadoTexto === "Ganador"){
-          ganador ++
-        }
-      });
+    console.log(e);
+    if (e.estadoTexto === "Ganador") {
+      ganador++
+    }
+  });
 
   for (let i = 0; i < registros.value.length; i++) {
-    
-     
-    
+
+
+
     if (ganador > 0) {
 
       Swal.fire({
@@ -739,7 +855,7 @@ function ganador() {
         registros.value[i].estadoTexto = "Ganador"
         validar = true;
 
-      }    
+      }
     }
   }
   console.log(validar);
@@ -749,13 +865,13 @@ function ganador() {
   }
 }
 
-                   
+
 
 function validar() {
   let fecha_actual = new Date()
   let fecha_select = new Date(fecha.value);
-
-
+  
+  
   if (edit == true) {
     if (vrifa.value == "") {
       Swal.fire({
@@ -800,7 +916,7 @@ function validar() {
         text: "El valor de la boleta debe ser numerico",
         timer: 3500
       });
-    }else if (parseInt(vboleta.value)>parseInt(vrifa.value)) {
+    } else if (parseInt(vboleta.value) > parseInt(vrifa.value)) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -829,7 +945,7 @@ function validar() {
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual.setHours(0,0,0,0) >= fecha_select) {
+    } else if (fecha_actual.setHours(0, 0, 0, 0) >= fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -845,8 +961,8 @@ function validar() {
       });
 
       agregar()
+      modal_intro.value = false;
 
-      modal_intro.value = false
     }
   } else {
     if (vrifa.value == "") {
@@ -891,7 +1007,7 @@ function validar() {
         text: "El valor de la boleta debe ser numerico",
         timer: 3500
       });
-    }else if (parseInt(vboleta.value)>parseInt(vrifa.value)) {
+    } else if (parseInt(vboleta.value) > parseInt(vrifa.value)) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -907,21 +1023,14 @@ function validar() {
         timer: 3500
       });
     }
-    else if (cantboletas.value == "") {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Seleccione la cantidad de boletas",
-        timer: 3500
-      });
-    } else if (fecha.value == "") {
+    else if (fecha.value == "") {
       Swal.fire({
         icon: "error",
         title: "Oops...",
         text: "Seleccione la fecha del sorteo",
         timer: 3500
       });
-    } else if (fecha_actual.setHours(0,0,0,0) > fecha_select) {
+    } else if (fecha_actual.setHours(0, 0, 0, 0) > fecha_select) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -935,10 +1044,10 @@ function validar() {
       datostalonario.value[index].loterias = loterias.value;
       datostalonario.value[index].cantboletas = cantboletas.value;
       datostalonario.value[index].fecha = fecha.value;
-
       edit = true;
       limpiar();
-      modal_intro.value = false;
+      
+      cerrar3();
       Swal.fire({
         icon: "success",
         title: "Datos de loteria editados",
@@ -946,6 +1055,8 @@ function validar() {
         timer: 3500
       });
     }
+
+    
   }
 
 }
@@ -974,6 +1085,7 @@ function agregar() {
   console.log(arr.value);
   console.log(datostalonario.value);
   limpiar();
+
 }
 
 
@@ -987,10 +1099,20 @@ function editar(item, i) {
   vboleta.value = numero;
   loterias.value = item.loterias;
   fecha.value = item.fecha;
+  cantboletas.value = item.cantboletas;
+  selectDeshabilitado.value = true;
   edit = false;
   index = i;
   modal_intro.value = true;
+
+  
+
+
+
 }
+
+
+
 
 function limpiar() {
   vrifa.value = "";
@@ -1010,72 +1132,112 @@ function limpiar2() {
 }
 
 function revertirFormatoMoneda(valorMoneda) {
-    
-    let numero = valorMoneda.replace(/[^0-9,-]+/g,"");
-    
-    numero = numero.replace(',', '.');
- 
-    return parseInt(numero);
+
+  let numero = valorMoneda.replace(/[^0-9,-]+/g, "");
+
+  numero = numero.replace(',', '.');
+
+  return parseInt(numero);
 }
 
-function totalDinero(){
+function totalDinero() {
   let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
-  
+
   let existe = false
 
-    registros.value.forEach(e => {
-      if(e.estadoTexto === "Pagado"){
-        existe = true
-        con.value ++
-        
-      }
-    });
-   
-    if(existe === true){
-        acum.value = numero * con.value
-      }
-    con.value = 0
-    
-    vpagada.value = acum.value
-  
+  registros.value.forEach(e => {
+    if (e.estadoTexto === "Pagado") {
+      existe = true
+      con.value++
+
+    }
+  });
+
+  if (existe === true) {
+    acum.value = numero * con.value
+  }
+  con.value = 0
+
+  vpagada.value = parseFloat(acum.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
 }
 
-function descontar(){
+function descontar() {
   let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
 
   acum.value -= numero
-  
-  vpagada.value = acum.value
+
+  vpagada.value = parseFloat(acum.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
 }
 
-function totalDeuda(){
+function totalDeuda() {
   let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
-  
+
   let existe = false
 
-    registros.value.forEach(e => {
-      if(e.estadoTexto === "Apartado"){
-        existe = true
-        conn.value ++
-        
-      }
-    });
-   
-    if(existe === true){
-        acumm.value = numero * conn.value
-      }
-    conn.value = 0
-    
-    vdeuda.value = acumm.value
-  
+  registros.value.forEach(e => {
+    if (e.estadoTexto === "Apartado") {
+      existe = true
+      conn.value++
+
+    }
+  });
+
+  if (existe === true) {
+    acumm.value = numero * conn.value
+  }
+  conn.value = 0
+
+  vdeuda.value = parseFloat(acumm.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+
 }
 
-function descontarD(){
+function descontarD() {
   let numero = revertirFormatoMoneda(datostalonario.value[0].vboleta);
 
   acumm.value -= numero
-  
-  vdeuda.value = acumm.value
+
+  vdeuda.value = parseFloat(acumm.value).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
 }
 
+
+function editarParticipante() {
+
+
+
+registros.value.forEach(e => {
+  if(e.boleta === numsele.value){
+    estadoP.value = e.estado
+    estadoTextoP.value = e.estadoTexto
+  }
+});
+
+  const cliente = {
+    nombre: nombreP.value,
+    direccion: direccionP.value,
+    telefono: telefonoP.value,
+    fecha: new Date().toISOString().split('T')[0],
+    estado: estadoP.value,
+    estadoTexto: estadoTextoP.value,
+    boleta: numsele.value
+  }
+
+  arr.value[i.value].comprador = cliente
+
+  console.log(registros.value);
+
+
+  for (let i = 0; i < registros.value.length; i++) {
+    const e = registros.value[i];
+    
+    if(e.boleta === numsele.value){
+      registros.value[i]=cliente
+    }
+  }
+  console.log(registros.value);
+
+
+  let modal = document.getElementById('participanteEdit');
+  let bootstrapModal = bootstrap.Modal.getInstance(modal);
+  bootstrapModal.hide();
+}
 </script>
