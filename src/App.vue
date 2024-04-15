@@ -159,7 +159,6 @@
             <div class="modal-header  encabezado"
               :style="{ backgroundColor: colorheader === '1' ? '#F1B300' : colorheader === '2' ? '#78A036' : colorheader === '3' ? '#BD5288' : colorheader === '4' ? '#F6B363' : '#014BAE' }">
               <h1 class="modal-title fs-5 titulo-datos-boleta titulo4" id="exampleModalLabel2">Participante</h1>
-              <button data-bs-toggle="modal" data-bs-target="#participanteEdit">Editar</button>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -202,6 +201,7 @@
                   <span v-if="estado === 2">Pagado</span>
                   <span v-if="estado === 3">Ganador</span>
                 </div>
+                <button data-bs-toggle="modal" data-bs-target="#participanteEdit" class="btn-editar2" :style="{ backgroundColor: colorbotones === '1' ? '#F1B300' : colorbotones === '2' ? '#78A036' : colorbotones === '3' ? '#BD5288' : colorbotones === '4' ? '#F6B363' : '#014BAE' }" >Editar</button>
               </div>
             </div>
           </div>
@@ -380,12 +380,12 @@
       <div class="modal fade prueba-color" id="participanteEdit" data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
-          <div class="modal-content contenido">
+          <div class="modal-content contenido3">
             <div class="modal-header ">
-              <h1 class="modal-title fs-5 titulo-datos-boleta" id="staticBackdropLabel">Datos del participante</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h1 class="modal-title fs-5 titulo-datos-boleta2" id="staticBackdropLabel">Datos del participante</h1>
+              <button type="button" class="btn-close  b2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body2">
               <input type="text" placeholder="Ingrese nombre del comprador" v-model="nombreP">
               <input type="text" placeholder="Ingrese direccion del comprador" v-model="direccionP">
               <input type="tel" required pattern="[0-9]+" maxlength="10" placeholder="Ingrese numero telefonico "
@@ -1105,14 +1105,7 @@ function editar(item, i) {
   index = i;
   modal_intro.value = true;
 
-  
-
-
-
 }
-
-
-
 
 function limpiar() {
   vrifa.value = "";
@@ -1201,8 +1194,58 @@ function descontarD() {
 
 
 function editarParticipante() {
+  let texto = /^[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+$/;
 
 
+  if(nombreP.value ==""){
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El nombre del comprador es requerido",
+      timer: 3500
+    });
+    return;
+  }else if (!texto.test(nombreP.value)) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de nombre comprador no puede llevar numeros",
+      timer: 3500
+    });
+    return
+  } else if(direccionP.value ==""){
+ Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "La dirrecion del comprador es requerida",
+      timer: 3500
+    });
+    return;
+  }else if(telefonoP.value ==""){
+  Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "El telefono del comprador es requerido",
+        timer: 3500
+      });
+      return;
+  } else if (isNaN(telefonoP.value) == true) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de telefono del comprador debe ser numerico",
+      timer: 3500
+    });
+    return;
+  } else if (telefonoP.value.length != 10) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "El campo de telefono debe tener al menos 10 numeros",
+      timer: 3500
+    });
+    return;
+  } 
 
 registros.value.forEach(e => {
   if(e.boleta === numsele.value){
@@ -1239,5 +1282,12 @@ registros.value.forEach(e => {
   let modal = document.getElementById('participanteEdit');
   let bootstrapModal = bootstrap.Modal.getInstance(modal);
   bootstrapModal.hide();
+
+  Swal.fire({
+      icon: "success",
+      title: "Boleta Actualizada",
+      showConfirmButton: false,
+      timer: 1500
+    });
 }
 </script>
